@@ -6,7 +6,7 @@ const {
   applyContrast,
   applyFade,
   applyTemperature
-} = require('./filters');
+} = require('../filters');
 
 describe('Image Filter Utilities', () => {
   describe('clamp01', () => {
