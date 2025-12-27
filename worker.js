@@ -5,18 +5,6 @@ if (!self.ImageFilters) {
   throw new Error('ImageFilters failed to load from filters.js');
 }
 
-const {
-  clamp01,
-  lerp,
-  rgbToHsl,
-  hslToRgb,
-  applyContrast,
-  applyFade,
-  applyTemperature,
-  vignetteFactor,
-  noise2D
-} = self.ImageFilters;
-
 self.onmessage = function(e) {
   const { imageData, params, seed } = e.data;
   const processedData = processImage(imageData, params, seed);
