@@ -58,6 +58,9 @@ function processImage(originalImageData, params, seed) {
       // Temperature
       [r, g, b] = applyTemperature(r, g, b, params.temp);
 
+      // Tint
+      [r, g, b] = applyTint(r, g, b, params.tint);
+
       // Fade / matte
       r = applyFade(r, params.fade);
       g = applyFade(g, params.fade);

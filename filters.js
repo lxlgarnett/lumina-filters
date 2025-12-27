@@ -67,6 +67,17 @@ function applyTemperature(r, g, b, t) {
   return [rr, g, bb];
 }
 
+// Tint shift: magenta -> raise R&B, lower G; green -> raise G, lower R&B
+function applyTint(r, g, b, t) {
+  // t -0.3..0.3
+  // t > 0: Magenta (increase R/B, decrease G)
+  // t < 0: Green (increase G, decrease R/B)
+  const rr = clamp01(r * (1 + t * 0.5));
+  const gg = clamp01(g * (1 - t));
+  const bb = clamp01(b * (1 + t * 0.5));
+  return [rr, gg, bb];
+}
+
 function vignetteFactor(x, y, w, h, strength) {
   if (strength <= 0) return 1;
   const nx = (x / (w - 1)) * 2 - 1;
@@ -97,6 +108,7 @@ function noise2D(x, y, seed) {
     applyContrast,
     applyFade,
     applyTemperature,
+    applyTint,
     vignetteFactor,
     noise2D
   };

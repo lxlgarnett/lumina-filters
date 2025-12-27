@@ -47,6 +47,7 @@
     contrast: $("contrast"),
     saturation: $("saturation"),
     temp: $("temp"),
+    tint: $("tint"),
     fade: $("fade"),
     vignette: $("vignette"),
     grain: $("grain"),
@@ -58,6 +59,7 @@
     contrastV: $("contrastV"),
     saturationV: $("saturationV"),
     tempV: $("tempV"),
+    tintV: $("tintV"),
     fadeV: $("fadeV"),
     vignetteV: $("vignetteV"),
     grainV: $("grainV"),
@@ -65,21 +67,34 @@
   
   // Presets definition
   const PRESETS = {
-    "Normal":        { strength:1.00, exposure:0.00, contrast:1.00, saturation:1.00, temp:0.00, fade:0.00, vignette:0.00, grain:0.00 },
-    "Clarendon-ish": { strength:0.85, exposure:0.03, contrast:1.22, saturation:1.18, temp:0.05, fade:0.06, vignette:0.18, grain:0.06 },
-    "Gingham-ish":   { strength:0.90, exposure:0.06, contrast:0.98, saturation:0.92, temp:0.02, fade:0.20, vignette:0.15, grain:0.07 },
-    "Juno-ish":      { strength:0.85, exposure:0.04, contrast:1.10, saturation:1.28, temp:0.10, fade:0.08, vignette:0.18, grain:0.07 },
-    "Lark-ish":      { strength:0.85, exposure:0.08, contrast:1.05, saturation:1.06, temp:-0.02, fade:0.10, vignette:0.12, grain:0.05 },
-    "Valencia-ish":  { strength:0.90, exposure:0.05, contrast:0.96, saturation:1.10, temp:0.12, fade:0.16, vignette:0.10, grain:0.06 },
-    "Lo-Fi-ish":     { strength:0.90, exposure:0.02, contrast:1.40, saturation:1.25, temp:0.04, fade:0.04, vignette:0.38, grain:0.08 },
-    "Inkwell-ish(BW)":{strength:1.00, exposure:0.02, contrast:1.35, saturation:0.00, temp:0.00, fade:0.10, vignette:0.22, grain:0.08 },
-    "X-Pro-ish":     { strength:0.90, exposure:0.00, contrast:1.25, saturation:1.12, temp:0.06, fade:0.06, vignette:0.30, grain:0.10 },
-    "Reyes-ish":     { strength:0.90, exposure:0.10, contrast:0.90, saturation:0.75, temp:0.10, fade:0.00, vignette:0.00, grain:0.00 },
-    "Slumber-ish":   { strength:0.90, exposure:0.05, contrast:0.95, saturation:0.66, temp:0.05, fade:0.15, vignette:0.20, grain:0.00 },
-    "Crema-ish":     { strength:0.90, exposure:0.05, contrast:1.00, saturation:0.90, temp:-0.05, fade:0.10, vignette:0.20, grain:0.05 },
-    "Ludwig-ish":    { strength:0.90, exposure:0.05, contrast:1.05, saturation:0.95, temp:0.03, fade:0.05, vignette:0.05, grain:0.00 },
-    "Aden-ish":      { strength:0.90, exposure:0.04, contrast:0.90, saturation:0.85, temp:0.08, fade:0.12, vignette:0.10, grain:0.00 },
-    "Perpetua-ish":  { strength:0.90, exposure:0.00, contrast:1.10, saturation:1.10, temp:-0.05, fade:0.05, vignette:0.15, grain:0.05 },
+    "Normal":        { strength:1.00, exposure:0.00, contrast:1.00, saturation:1.00, temp:0.00, tint:0.00, fade:0.00, vignette:0.00, grain:0.00 },
+    // Instagram-ish
+    "Clarendon-ish": { strength:0.85, exposure:0.03, contrast:1.22, saturation:1.18, temp:0.05, tint:0.00, fade:0.06, vignette:0.18, grain:0.06 },
+    "Gingham-ish":   { strength:0.90, exposure:0.06, contrast:0.98, saturation:0.92, temp:0.02, tint:-0.02, fade:0.20, vignette:0.15, grain:0.07 },
+    "Juno-ish":      { strength:0.85, exposure:0.04, contrast:1.10, saturation:1.28, temp:0.10, tint:0.00, fade:0.08, vignette:0.18, grain:0.07 },
+    "Lark-ish":      { strength:0.85, exposure:0.08, contrast:1.05, saturation:1.06, temp:-0.02, tint:0.00, fade:0.10, vignette:0.12, grain:0.05 },
+    "Valencia-ish":  { strength:0.90, exposure:0.05, contrast:0.96, saturation:1.10, temp:0.12, tint:0.02, fade:0.16, vignette:0.10, grain:0.06 },
+    "Lo-Fi-ish":     { strength:0.90, exposure:0.02, contrast:1.40, saturation:1.25, temp:0.04, tint:0.00, fade:0.04, vignette:0.38, grain:0.08 },
+    "Inkwell-ish(BW)":{strength:1.00, exposure:0.02, contrast:1.35, saturation:0.00, temp:0.00, tint:0.00, fade:0.10, vignette:0.22, grain:0.08 },
+    "X-Pro-ish":     { strength:0.90, exposure:0.00, contrast:1.25, saturation:1.12, temp:0.06, tint:0.04, fade:0.06, vignette:0.30, grain:0.10 },
+    "Reyes-ish":     { strength:0.90, exposure:0.10, contrast:0.90, saturation:0.75, temp:0.10, tint:-0.02, fade:0.00, vignette:0.00, grain:0.00 },
+    "Slumber-ish":   { strength:0.90, exposure:0.05, contrast:0.95, saturation:0.66, temp:0.05, tint:0.05, fade:0.15, vignette:0.20, grain:0.00 },
+    "Crema-ish":     { strength:0.90, exposure:0.05, contrast:1.00, saturation:0.90, temp:-0.05, tint:0.00, fade:0.10, vignette:0.20, grain:0.05 },
+    "Ludwig-ish":    { strength:0.90, exposure:0.05, contrast:1.05, saturation:0.95, temp:0.03, tint:0.00, fade:0.05, vignette:0.05, grain:0.00 },
+    "Aden-ish":      { strength:0.90, exposure:0.04, contrast:0.90, saturation:0.85, temp:0.08, tint:0.08, fade:0.12, vignette:0.10, grain:0.00 },
+    "Perpetua-ish":  { strength:0.90, exposure:0.00, contrast:1.10, saturation:1.10, temp:-0.05, tint:0.00, fade:0.05, vignette:0.15, grain:0.05 },
+    
+    // Google Photos-ish
+    "West-ish":      { strength:0.90, exposure:0.05, contrast:1.15, saturation:0.90, temp:0.08, tint:0.02, fade:0.10, vignette:0.15, grain:0.05 },
+    "Palma-ish":     { strength:0.90, exposure:0.10, contrast:1.05, saturation:1.30, temp:0.06, tint:-0.02, fade:0.00, vignette:0.05, grain:0.00 },
+    "Metro-ish":     { strength:0.95, exposure:0.02, contrast:1.20, saturation:1.05, temp:-0.05, tint:0.08, fade:0.00, vignette:0.10, grain:0.00 },
+    "Eiffel-ish":    { strength:0.90, exposure:0.00, contrast:1.10, saturation:0.95, temp:-0.04, tint:0.04, fade:0.12, vignette:0.15, grain:0.04 },
+    "Blush-ish":     { strength:0.90, exposure:0.05, contrast:0.95, saturation:1.10, temp:0.05, tint:0.12, fade:0.05, vignette:0.00, grain:0.00 },
+    "Modena-ish":    { strength:0.90, exposure:0.08, contrast:1.15, saturation:0.90, temp:0.10, tint:0.00, fade:0.00, vignette:0.10, grain:0.00 },
+    "Reel-ish":      { strength:0.90, exposure:0.05, contrast:1.10, saturation:1.00, temp:0.00, tint:0.00, fade:0.00, vignette:0.00, grain:0.12 }, // Film grain focus
+    "Vogue-ish (BW)":{ strength:1.00, exposure:0.05, contrast:1.30, saturation:0.00, temp:0.00, tint:0.00, fade:0.05, vignette:0.15, grain:0.00 },
+    "Ollie-ish (BW)":{ strength:1.00, exposure:0.00, contrast:1.05, saturation:0.00, temp:0.00, tint:0.00, fade:0.25, vignette:0.10, grain:0.08 },
+    "Bazaar-ish":    { strength:0.95, exposure:0.02, contrast:1.25, saturation:1.15, temp:0.02, tint:-0.05, fade:0.00, vignette:0.20, grain:0.00 },
   };
 
   function setSlider(name, value){
@@ -96,6 +111,7 @@
       contrast: +ui.contrast.value,
       saturation: +ui.saturation.value,
       temp: +ui.temp.value,
+      tint: +ui.tint.value,
       fade: +ui.fade.value,
       vignette: +ui.vignette.value,
       grain: +ui.grain.value,
@@ -217,7 +233,7 @@
   };
 
   // Slider updates
-  for(const k of ["strength","exposure","contrast","saturation","temp","fade","vignette","grain"]){
+  for(const k of ["strength","exposure","contrast","saturation","temp","tint","fade","vignette","grain"]){
     ui[k].addEventListener("input", () => {
       uiVals[k+"V"].textContent = (+ui[k].value).toFixed(2);
       requestRender();
