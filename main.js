@@ -1,5 +1,30 @@
 (() => {
   // -----------------------------
+  // Router Logic
+  // -----------------------------
+  function handleRoute() {
+    const hash = window.location.hash || "#home";
+    
+    // Hide all views
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
+
+    // Show target view
+    if (hash === "#editor") {
+      document.getElementById('view-editor').classList.add('active');
+      document.getElementById('nav-editor').classList.add('active');
+      // Refresh canvas if needed (sometimes canvas needs redraw when unhidden)
+      if(originalImageData) requestRender();
+    } else {
+      document.getElementById('view-home').classList.add('active');
+      document.getElementById('nav-home').classList.add('active');
+    }
+  }
+
+  window.addEventListener('hashchange', handleRoute);
+  window.addEventListener('DOMContentLoaded', handleRoute);
+
+  // -----------------------------
   // UI wiring
   // -----------------------------
   const $ = (id) => document.getElementById(id);
