@@ -1,5 +1,9 @@
 // Import utilities
-importScripts('filters.js');
+importScripts('./filters.js');
+
+if (!self.ImageFilters) {
+  throw new Error('ImageFilters failed to load from filters.js');
+}
 
 const {
   clamp01,

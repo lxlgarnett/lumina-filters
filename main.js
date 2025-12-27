@@ -178,6 +178,12 @@
     }
   };
 
+  worker.onerror = function(e) {
+    console.error("Worker error:", e);
+    ui.fps.textContent = "Error processing image";
+    isProcessing = false;
+  };
+
   // Slider updates
   for(const k of ["strength","exposure","contrast","saturation","temp","fade","vignette","grain"]){
     ui[k].addEventListener("input", () => {
@@ -187,7 +193,10 @@
   }
 
   ui.preset.addEventListener("change", () => applyPreset(PRESETS[ui.preset.value]));
-  ui.reset.addEventListener("click", () => applyPreset(PRESETS["Clarendon-ish"]));
+  ui.reset.addEventListener("click", () => {
+    ui.preset.value = "Clarendon-ish";
+    applyPreset(PRESETS["Clarendon-ish"]);
+  });
 
   ui.save.addEventListener("click", () => {
     const a = document.createElement("a");
