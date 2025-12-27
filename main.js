@@ -14,7 +14,7 @@
       document.getElementById('view-editor').classList.add('active');
       document.getElementById('nav-editor').classList.add('active');
       // Refresh canvas if needed (sometimes canvas needs redraw when unhidden)
-      if(originalImageData) requestRender();
+      requestRender();
     } else {
       document.getElementById('view-home').classList.add('active');
       document.getElementById('nav-home').classList.add('active');
@@ -25,17 +25,200 @@
   window.addEventListener('DOMContentLoaded', handleRoute);
 
   // -----------------------------
-  // UI wiring
+  // WebGL Setup
   // -----------------------------
   const $ = (id) => document.getElementById(id);
   const canvas = $("cv");
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  
-  // Worker setup
-  const worker = new Worker('worker.js');
-  let isProcessing = false;
-  let pendingRender = false;
+  const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
 
+  if (!gl) {
+    alert("WebGL not supported");
+    return;
+  }
+
+  // Shaders
+  const vsSource = `
+    attribute vec2 a_position;
+    attribute vec2 a_texCoord;
+    varying vec2 v_texCoord;
+    void main() {
+       gl_Position = vec4(a_position, 0, 1);
+       v_texCoord = a_texCoord;
+    }
+  `;
+
+  const fsSource = `
+    precision mediump float;
+    uniform sampler2D u_image;
+    uniform vec2 u_resolution;
+    uniform float u_strength;
+    uniform float u_exposure;
+    uniform float u_contrast;
+    uniform float u_saturation;
+    uniform float u_temp;
+    uniform float u_tint;
+    uniform float u_fade;
+    uniform float u_vignette;
+    uniform float u_grain;
+    uniform float u_seed;
+
+    varying vec2 v_texCoord;
+
+    // Utils
+    float clamp01(float x) { return clamp(x, 0.0, 1.0); }
+
+    // Pseudo-random noise
+    float hash12(vec2 p) {
+        vec3 p3  = fract(vec3(p.xyx) * .1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    void main() {
+        vec4 texColor = texture2D(u_image, v_texCoord);
+        vec3 col = texColor.rgb;
+        vec3 originalCol = col;
+
+        // Exposure (Add)
+        col = clamp(col + u_exposure, 0.0, 1.0);
+
+        // Contrast
+        col = clamp((col - 0.5) * u_contrast + 0.5, 0.0, 1.0);
+
+        // Saturation (Luma mix)
+        float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+        col = mix(vec3(lum), col, u_saturation);
+        col = clamp(col, 0.0, 1.0);
+
+        // Temperature
+        // warm -> raise R, lower B
+        col.r = clamp(col.r * (1.0 + u_temp), 0.0, 1.0);
+        col.b = clamp(col.b * (1.0 - u_temp), 0.0, 1.0);
+
+        // Tint
+        // magenta -> raise R/B, lower G; green -> raise G, lower R/B
+        col.r = clamp(col.r * (1.0 + u_tint * 0.5), 0.0, 1.0);
+        col.g = clamp(col.g * (1.0 - u_tint), 0.0, 1.0);
+        col.b = clamp(col.b * (1.0 + u_tint * 0.5), 0.0, 1.0);
+
+        // Fade
+        // y = x * (1 - 0.25 * a) + 0.08 * a;
+        // y = lerp(y, pow(y, 0.9), 0.35 * a);
+        if (u_fade > 0.0) {
+            vec3 y = col * (1.0 - 0.25 * u_fade) + 0.08 * u_fade;
+            // vector pow is component-wise
+            vec3 y_pow = pow(y, vec3(0.9));
+            col = mix(y, y_pow, 0.35 * u_fade);
+            col = clamp(col, 0.0, 1.0);
+        }
+
+        // Vignette
+        // coord -1..1
+        vec2 coord = v_texCoord * 2.0 - 1.0;
+        // Correct aspect ratio for circular vignette if needed, but original code was simple distance
+        // The original code calculated distance in normalized space 0..1 then *2-1, so just simple distance from center in UV space
+        // However, standard vignette is usually circular.
+        // Original: (x / (w - 1)) * 2 - 1
+        float d = length(coord);
+        float v = 1.0 - u_vignette * pow(min(1.0, d), 1.7);
+        col *= max(0.0, v);
+
+        // Grain
+        if (u_grain > 0.0) {
+            float n = hash12(v_texCoord * u_resolution + u_seed) * 2.0 - 1.0; // -1..1
+            float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+            float midW = 1.0 - abs(l - 0.5) * 2.0;
+            float gn = n * (0.03 + 0.12 * u_grain) * midW;
+            col = clamp(col + gn, 0.0, 1.0);
+        }
+
+        // Strength (Mix with original)
+        col = mix(originalCol, col, u_strength);
+
+        gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function createShader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error(gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  function createProgram(gl, vs, fs) {
+    const program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(program));
+      return null;
+    }
+    return program;
+  }
+
+  const program = createProgram(gl, createShader(gl, gl.VERTEX_SHADER, vsSource), createShader(gl, gl.FRAGMENT_SHADER, fsSource));
+  
+  // Locations
+  const positionLoc = gl.getAttribLocation(program, "a_position");
+  const texCoordLoc = gl.getAttribLocation(program, "a_texCoord");
+  
+  const locs = {
+    u_image: gl.getUniformLocation(program, "u_image"),
+    u_resolution: gl.getUniformLocation(program, "u_resolution"),
+    u_strength: gl.getUniformLocation(program, "u_strength"),
+    u_exposure: gl.getUniformLocation(program, "u_exposure"),
+    u_contrast: gl.getUniformLocation(program, "u_contrast"),
+    u_saturation: gl.getUniformLocation(program, "u_saturation"),
+    u_temp: gl.getUniformLocation(program, "u_temp"),
+    u_tint: gl.getUniformLocation(program, "u_tint"),
+    u_fade: gl.getUniformLocation(program, "u_fade"),
+    u_vignette: gl.getUniformLocation(program, "u_vignette"),
+    u_grain: gl.getUniformLocation(program, "u_grain"),
+    u_seed: gl.getUniformLocation(program, "u_seed"),
+  };
+
+  // Buffer setup (Quad)
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1, -1,
+     1, -1,
+    -1,  1,
+    -1,  1,
+     1, -1,
+     1,  1,
+  ]), gl.STATIC_DRAW);
+
+  const texCoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    0, 0,
+    1, 0,
+    0, 1,
+    0, 1,
+    1, 0,
+    1, 1,
+  ]), gl.STATIC_DRAW);
+
+  // Create texture
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  // Default filtering
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  // -----------------------------
+  // UI wiring
+  // -----------------------------
   const ui = {
     file: $("file"),
     preset: $("preset"),
@@ -104,20 +287,6 @@
     }
   }
 
-  function getParams(){
-    return {
-      strength: +ui.strength.value,
-      exposure: +ui.exposure.value,
-      contrast: +ui.contrast.value,
-      saturation: +ui.saturation.value,
-      temp: +ui.temp.value,
-      tint: +ui.tint.value,
-      fade: +ui.fade.value,
-      vignette: +ui.vignette.value,
-      grain: +ui.grain.value,
-    };
-  }
-
   function applyPreset(p){
     for(const k of Object.keys(p)){
       if(ui[k]) setSlider(k, p[k]);
@@ -138,11 +307,20 @@
   // -----------------------------
   const img = new Image();
   img.crossOrigin = "anonymous";
-  let originalImageData = null;
+  let imageLoaded = false;
+
+  function loadTexture(image) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  }
 
   function drawPlaceholder(){
     const w = 1200, h = 800;
-    canvas.width = w; canvas.height = h;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+    const ctx = tempCanvas.getContext('2d');
+    
     const g = ctx.createLinearGradient(0,0,w,h);
     g.addColorStop(0, "#2b5876");
     g.addColorStop(0.45, "#4e4376");
@@ -156,22 +334,27 @@
     ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.fillText("This is a placeholder canvas.", 70, 170);
     
-    originalImageData = ctx.getImageData(0,0,w,h);
+    canvas.width = w;
+    canvas.height = h;
+    gl.viewport(0, 0, w, h);
+    
+    loadTexture(tempCanvas);
+    imageLoaded = true;
     requestRender();
   }
 
-  function fitToCanvas(image, maxW=1400){
+  function fitToCanvas(image, maxW=2000){
+    // WebGL can handle larger images easily
     const ratio = image.naturalWidth / image.naturalHeight;
     let w = Math.min(maxW, image.naturalWidth);
     let h = Math.round(w / ratio);
-    if(h > 1000){
-      h = 1000;
-      w = Math.round(h * ratio);
-    }
+    
     canvas.width = w;
     canvas.height = h;
-    ctx.drawImage(image, 0, 0, w, h);
-    originalImageData = ctx.getImageData(0, 0, w, h);
+    gl.viewport(0, 0, w, h);
+    
+    loadTexture(image);
+    imageLoaded = true;
   }
 
   ui.file.addEventListener("change", (e) => {
@@ -187,50 +370,52 @@
   });
 
   // -----------------------------
-  // Rendering (Web Worker)
+  // Rendering
   // -----------------------------
-  let t0 = 0;
+  let animationFrameId;
 
-  function requestRender(){
-    if (isProcessing) {
-      pendingRender = true;
-      return;
-    }
-    if (!originalImageData) return;
-
-    isProcessing = true;
-    t0 = performance.now();
-    ui.fps.textContent = "Processing...";
+  function render() {
+    if (!imageLoaded) return;
     
-    const params = getParams();
-    // 1337 is the seed, could be random if desired
-    worker.postMessage({ 
-      imageData: originalImageData, 
-      params: params,
-      seed: 1337 
-    });
+    const t0 = performance.now();
+
+    gl.useProgram(program);
+
+    gl.enableVertexAttribArray(positionLoc);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+    gl.enableVertexAttribArray(texCoordLoc);
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+
+    // Uniforms
+    gl.uniform1i(locs.u_image, 0);
+    gl.uniform2f(locs.u_resolution, canvas.width, canvas.height);
+    gl.uniform1f(locs.u_strength, +ui.strength.value);
+    gl.uniform1f(locs.u_exposure, +ui.exposure.value);
+    gl.uniform1f(locs.u_contrast, +ui.contrast.value);
+    gl.uniform1f(locs.u_saturation, +ui.saturation.value);
+    gl.uniform1f(locs.u_temp, +ui.temp.value);
+    gl.uniform1f(locs.u_tint, +ui.tint.value);
+    gl.uniform1f(locs.u_fade, +ui.fade.value);
+    gl.uniform1f(locs.u_vignette, +ui.vignette.value);
+    gl.uniform1f(locs.u_grain, +ui.grain.value);
+    gl.uniform1f(locs.u_seed, Math.random() * 1000.0); // Simple random seed for grain noise
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    const dt = Math.round(performance.now() - t0);
+    ui.fps.textContent = `Render: ${dt}ms (WebGL)`;
+    
+    animationFrameId = null;
   }
 
-  worker.onmessage = function(e) {
-    const { imageData } = e.data;
-    ctx.putImageData(imageData, 0, 0);
-    
-    const dt = Math.round(performance.now() - t0);
-    ui.fps.textContent = `Render: ${dt}ms`;
-    
-    isProcessing = false;
-    
-    if (pendingRender) {
-      pendingRender = false;
-      requestRender();
+  function requestRender() {
+    if (!animationFrameId) {
+      animationFrameId = requestAnimationFrame(render);
     }
-  };
-
-  worker.onerror = function(e) {
-    console.error("Worker error:", e);
-    ui.fps.textContent = "Error processing image";
-    isProcessing = false;
-  };
+  }
 
   // Slider updates
   for(const k of ["strength","exposure","contrast","saturation","temp","tint","fade","vignette","grain"]){
@@ -247,6 +432,8 @@
   });
 
   ui.save.addEventListener("click", () => {
+    // WebGL canvas needs to be drawn with preserveDrawingBuffer:true to grab dataURL 
+    // or just grab it right after render. We set preserveDrawingBuffer:true in init.
     const a = document.createElement("a");
     a.download = "filtered.png";
     a.href = canvas.toDataURL("image/png");
