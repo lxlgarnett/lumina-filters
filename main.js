@@ -48,6 +48,9 @@
     "Lo-Fi-ish":     { strength:0.90, exposure:0.02, contrast:1.40, saturation:1.25, temp:0.04, fade:0.04, vignette:0.38, grain:0.08 },
     "Inkwell-ish(BW)":{strength:1.00, exposure:0.02, contrast:1.35, saturation:0.00, temp:0.00, fade:0.10, vignette:0.22, grain:0.08 },
     "X-Pro-ish":     { strength:0.90, exposure:0.00, contrast:1.25, saturation:1.12, temp:0.06, fade:0.06, vignette:0.30, grain:0.10 },
+    "Reyes-ish":     { strength:0.90, exposure:0.10, contrast:0.90, saturation:0.75, temp:0.10, fade:0.00, vignette:0.00, grain:0.00 },
+    "Slumber-ish":   { strength:0.90, exposure:0.05, contrast:0.95, saturation:0.66, temp:0.05, fade:0.15, vignette:0.20, grain:0.00 },
+    "Crema-ish":     { strength:0.90, exposure:0.05, contrast:1.00, saturation:0.90, temp:-0.05, fade:0.10, vignette:0.20, grain:0.05 },
   };
 
   function setSlider(name, value){
