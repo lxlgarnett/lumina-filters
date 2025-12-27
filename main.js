@@ -4,25 +4,29 @@
   // -----------------------------
   function handleRoute() {
     const hash = window.location.hash || "#home";
-    
+
     // Hide all views
-    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
+    document
+      .querySelectorAll(".view")
+      .forEach((el) => el.classList.remove("active"));
+    document
+      .querySelectorAll("nav a")
+      .forEach((el) => el.classList.remove("active"));
 
     // Show target view
     if (hash === "#editor") {
-      document.getElementById('view-editor').classList.add('active');
-      document.getElementById('nav-editor').classList.add('active');
+      document.getElementById("view-editor").classList.add("active");
+      document.getElementById("nav-editor").classList.add("active");
       // Refresh canvas if needed (sometimes canvas needs redraw when unhidden)
       requestRender();
     } else {
-      document.getElementById('view-home').classList.add('active');
-      document.getElementById('nav-home').classList.add('active');
+      document.getElementById("view-home").classList.add("active");
+      document.getElementById("nav-home").classList.add("active");
     }
   }
 
-  window.addEventListener('hashchange', handleRoute);
-  window.addEventListener('DOMContentLoaded', handleRoute);
+  window.addEventListener("hashchange", handleRoute);
+  window.addEventListener("DOMContentLoaded", handleRoute);
 
   // -----------------------------
   // WebGL Setup
@@ -163,12 +167,16 @@
     return program;
   }
 
-  const program = createProgram(gl, createShader(gl, gl.VERTEX_SHADER, vsSource), createShader(gl, gl.FRAGMENT_SHADER, fsSource));
-  
+  const program = createProgram(
+    gl,
+    createShader(gl, gl.VERTEX_SHADER, vsSource),
+    createShader(gl, gl.FRAGMENT_SHADER, fsSource),
+  );
+
   // Locations
   const positionLoc = gl.getAttribLocation(program, "a_position");
   const texCoordLoc = gl.getAttribLocation(program, "a_texCoord");
-  
+
   const locs = {
     u_image: gl.getUniformLocation(program, "u_image"),
     u_resolution: gl.getUniformLocation(program, "u_resolution"),
@@ -187,25 +195,19 @@
   // Buffer setup (Quad)
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    -1, -1,
-     1, -1,
-    -1,  1,
-    -1,  1,
-     1, -1,
-     1,  1,
-  ]), gl.STATIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW,
+  );
 
   const texCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    0, 0,
-    1, 0,
-    0, 1,
-    0, 1,
-    1, 0,
-    1, 1,
-  ]), gl.STATIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
+    gl.STATIC_DRAW,
+  );
 
   // Create texture
   const texture = gl.createTexture();
@@ -248,57 +250,308 @@
     vignetteV: $("vignetteV"),
     grainV: $("grainV"),
   };
-  
+
   // Presets definition
   const PRESETS = {
-    "Normal":        { strength:1.00, exposure:0.00, contrast:1.00, saturation:1.00, temp:0.00, tint:0.00, fade:0.00, vignette:0.00, grain:0.00 },
+    Normal: {
+      strength: 1.0,
+      exposure: 0.0,
+      contrast: 1.0,
+      saturation: 1.0,
+      temp: 0.0,
+      tint: 0.0,
+      fade: 0.0,
+      vignette: 0.0,
+      grain: 0.0,
+    },
     // Instagram-ish
-    "Clarendon-ish": { strength:0.85, exposure:0.03, contrast:1.22, saturation:1.18, temp:0.05, tint:0.00, fade:0.06, vignette:0.18, grain:0.06 },
-    "Gingham-ish":   { strength:0.90, exposure:0.06, contrast:0.98, saturation:0.92, temp:0.02, tint:-0.02, fade:0.20, vignette:0.15, grain:0.07 },
-    "Juno-ish":      { strength:0.85, exposure:0.04, contrast:1.10, saturation:1.28, temp:0.10, tint:0.00, fade:0.08, vignette:0.18, grain:0.07 },
-    "Lark-ish":      { strength:0.85, exposure:0.08, contrast:1.05, saturation:1.06, temp:-0.02, tint:0.00, fade:0.10, vignette:0.12, grain:0.05 },
-    "Valencia-ish":  { strength:0.90, exposure:0.05, contrast:0.96, saturation:1.10, temp:0.12, tint:0.02, fade:0.16, vignette:0.10, grain:0.06 },
-    "Lo-Fi-ish":     { strength:0.90, exposure:0.02, contrast:1.40, saturation:1.25, temp:0.04, tint:0.00, fade:0.04, vignette:0.38, grain:0.08 },
-    "Inkwell-ish(BW)":{strength:1.00, exposure:0.02, contrast:1.35, saturation:0.00, temp:0.00, tint:0.00, fade:0.10, vignette:0.22, grain:0.08 },
-    "X-Pro-ish":     { strength:0.90, exposure:0.00, contrast:1.25, saturation:1.12, temp:0.06, tint:0.04, fade:0.06, vignette:0.30, grain:0.10 },
-    "Reyes-ish":     { strength:0.90, exposure:0.10, contrast:0.90, saturation:0.75, temp:0.10, tint:-0.02, fade:0.00, vignette:0.00, grain:0.00 },
-    "Slumber-ish":   { strength:0.90, exposure:0.05, contrast:0.95, saturation:0.66, temp:0.05, tint:0.05, fade:0.15, vignette:0.20, grain:0.00 },
-    "Crema-ish":     { strength:0.90, exposure:0.05, contrast:1.00, saturation:0.90, temp:-0.05, tint:0.00, fade:0.10, vignette:0.20, grain:0.05 },
-    "Ludwig-ish":    { strength:0.90, exposure:0.05, contrast:1.05, saturation:0.95, temp:0.03, tint:0.00, fade:0.05, vignette:0.05, grain:0.00 },
-    "Aden-ish":      { strength:0.90, exposure:0.04, contrast:0.90, saturation:0.85, temp:0.08, tint:0.08, fade:0.12, vignette:0.10, grain:0.00 },
-    "Perpetua-ish":  { strength:0.90, exposure:0.00, contrast:1.10, saturation:1.10, temp:-0.05, tint:0.00, fade:0.05, vignette:0.15, grain:0.05 },
-    
+    "Clarendon-ish": {
+      strength: 0.85,
+      exposure: 0.03,
+      contrast: 1.22,
+      saturation: 1.18,
+      temp: 0.05,
+      tint: 0.0,
+      fade: 0.06,
+      vignette: 0.18,
+      grain: 0.06,
+    },
+    "Gingham-ish": {
+      strength: 0.9,
+      exposure: 0.06,
+      contrast: 0.98,
+      saturation: 0.92,
+      temp: 0.02,
+      tint: -0.02,
+      fade: 0.2,
+      vignette: 0.15,
+      grain: 0.07,
+    },
+    "Juno-ish": {
+      strength: 0.85,
+      exposure: 0.04,
+      contrast: 1.1,
+      saturation: 1.28,
+      temp: 0.1,
+      tint: 0.0,
+      fade: 0.08,
+      vignette: 0.18,
+      grain: 0.07,
+    },
+    "Lark-ish": {
+      strength: 0.85,
+      exposure: 0.08,
+      contrast: 1.05,
+      saturation: 1.06,
+      temp: -0.02,
+      tint: 0.0,
+      fade: 0.1,
+      vignette: 0.12,
+      grain: 0.05,
+    },
+    "Valencia-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 0.96,
+      saturation: 1.1,
+      temp: 0.12,
+      tint: 0.02,
+      fade: 0.16,
+      vignette: 0.1,
+      grain: 0.06,
+    },
+    "Lo-Fi-ish": {
+      strength: 0.9,
+      exposure: 0.02,
+      contrast: 1.4,
+      saturation: 1.25,
+      temp: 0.04,
+      tint: 0.0,
+      fade: 0.04,
+      vignette: 0.38,
+      grain: 0.08,
+    },
+    "Inkwell-ish(BW)": {
+      strength: 1.0,
+      exposure: 0.02,
+      contrast: 1.35,
+      saturation: 0.0,
+      temp: 0.0,
+      tint: 0.0,
+      fade: 0.1,
+      vignette: 0.22,
+      grain: 0.08,
+    },
+    "X-Pro-ish": {
+      strength: 0.9,
+      exposure: 0.0,
+      contrast: 1.25,
+      saturation: 1.12,
+      temp: 0.06,
+      tint: 0.04,
+      fade: 0.06,
+      vignette: 0.3,
+      grain: 0.1,
+    },
+    "Reyes-ish": {
+      strength: 0.9,
+      exposure: 0.1,
+      contrast: 0.9,
+      saturation: 0.75,
+      temp: 0.1,
+      tint: -0.02,
+      fade: 0.0,
+      vignette: 0.0,
+      grain: 0.0,
+    },
+    "Slumber-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 0.95,
+      saturation: 0.66,
+      temp: 0.05,
+      tint: 0.05,
+      fade: 0.15,
+      vignette: 0.2,
+      grain: 0.0,
+    },
+    "Crema-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 1.0,
+      saturation: 0.9,
+      temp: -0.05,
+      tint: 0.0,
+      fade: 0.1,
+      vignette: 0.2,
+      grain: 0.05,
+    },
+    "Ludwig-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 1.05,
+      saturation: 0.95,
+      temp: 0.03,
+      tint: 0.0,
+      fade: 0.05,
+      vignette: 0.05,
+      grain: 0.0,
+    },
+    "Aden-ish": {
+      strength: 0.9,
+      exposure: 0.04,
+      contrast: 0.9,
+      saturation: 0.85,
+      temp: 0.08,
+      tint: 0.08,
+      fade: 0.12,
+      vignette: 0.1,
+      grain: 0.0,
+    },
+    "Perpetua-ish": {
+      strength: 0.9,
+      exposure: 0.0,
+      contrast: 1.1,
+      saturation: 1.1,
+      temp: -0.05,
+      tint: 0.0,
+      fade: 0.05,
+      vignette: 0.15,
+      grain: 0.05,
+    },
+
     // Google Photos-ish
-    "West-ish":      { strength:0.90, exposure:0.05, contrast:1.15, saturation:0.90, temp:0.08, tint:0.02, fade:0.10, vignette:0.15, grain:0.05 },
-    "Palma-ish":     { strength:0.90, exposure:0.10, contrast:1.05, saturation:1.30, temp:0.06, tint:-0.02, fade:0.00, vignette:0.05, grain:0.00 },
-    "Metro-ish":     { strength:0.95, exposure:0.02, contrast:1.20, saturation:1.05, temp:-0.05, tint:0.08, fade:0.00, vignette:0.10, grain:0.00 },
-    "Eiffel-ish":    { strength:0.90, exposure:0.00, contrast:1.10, saturation:0.95, temp:-0.04, tint:0.04, fade:0.12, vignette:0.15, grain:0.04 },
-    "Blush-ish":     { strength:0.90, exposure:0.05, contrast:0.95, saturation:1.10, temp:0.05, tint:0.12, fade:0.05, vignette:0.00, grain:0.00 },
-    "Modena-ish":    { strength:0.90, exposure:0.08, contrast:1.15, saturation:0.90, temp:0.10, tint:0.00, fade:0.00, vignette:0.10, grain:0.00 },
-    "Reel-ish":      { strength:0.90, exposure:0.05, contrast:1.10, saturation:1.00, temp:0.00, tint:0.00, fade:0.00, vignette:0.00, grain:0.12 }, // Film grain focus
-    "Vogue-ish (BW)":{ strength:1.00, exposure:0.05, contrast:1.30, saturation:0.00, temp:0.00, tint:0.00, fade:0.05, vignette:0.15, grain:0.00 },
-    "Ollie-ish (BW)":{ strength:1.00, exposure:0.00, contrast:1.05, saturation:0.00, temp:0.00, tint:0.00, fade:0.25, vignette:0.10, grain:0.08 },
-    "Bazaar-ish":    { strength:0.95, exposure:0.02, contrast:1.25, saturation:1.15, temp:0.02, tint:-0.05, fade:0.00, vignette:0.20, grain:0.00 },
+    "West-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 1.15,
+      saturation: 0.9,
+      temp: 0.08,
+      tint: 0.02,
+      fade: 0.1,
+      vignette: 0.15,
+      grain: 0.05,
+    },
+    "Palma-ish": {
+      strength: 0.9,
+      exposure: 0.1,
+      contrast: 1.05,
+      saturation: 1.3,
+      temp: 0.06,
+      tint: -0.02,
+      fade: 0.0,
+      vignette: 0.05,
+      grain: 0.0,
+    },
+    "Metro-ish": {
+      strength: 0.95,
+      exposure: 0.02,
+      contrast: 1.2,
+      saturation: 1.05,
+      temp: -0.05,
+      tint: 0.08,
+      fade: 0.0,
+      vignette: 0.1,
+      grain: 0.0,
+    },
+    "Eiffel-ish": {
+      strength: 0.9,
+      exposure: 0.0,
+      contrast: 1.1,
+      saturation: 0.95,
+      temp: -0.04,
+      tint: 0.04,
+      fade: 0.12,
+      vignette: 0.15,
+      grain: 0.04,
+    },
+    "Blush-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 0.95,
+      saturation: 1.1,
+      temp: 0.05,
+      tint: 0.12,
+      fade: 0.05,
+      vignette: 0.0,
+      grain: 0.0,
+    },
+    "Modena-ish": {
+      strength: 0.9,
+      exposure: 0.08,
+      contrast: 1.15,
+      saturation: 0.9,
+      temp: 0.1,
+      tint: 0.0,
+      fade: 0.0,
+      vignette: 0.1,
+      grain: 0.0,
+    },
+    "Reel-ish": {
+      strength: 0.9,
+      exposure: 0.05,
+      contrast: 1.1,
+      saturation: 1.0,
+      temp: 0.0,
+      tint: 0.0,
+      fade: 0.0,
+      vignette: 0.0,
+      grain: 0.12,
+    }, // Film grain focus
+    "Vogue-ish (BW)": {
+      strength: 1.0,
+      exposure: 0.05,
+      contrast: 1.3,
+      saturation: 0.0,
+      temp: 0.0,
+      tint: 0.0,
+      fade: 0.05,
+      vignette: 0.15,
+      grain: 0.0,
+    },
+    "Ollie-ish (BW)": {
+      strength: 1.0,
+      exposure: 0.0,
+      contrast: 1.05,
+      saturation: 0.0,
+      temp: 0.0,
+      tint: 0.0,
+      fade: 0.25,
+      vignette: 0.1,
+      grain: 0.08,
+    },
+    "Bazaar-ish": {
+      strength: 0.95,
+      exposure: 0.02,
+      contrast: 1.25,
+      saturation: 1.15,
+      temp: 0.02,
+      tint: -0.05,
+      fade: 0.0,
+      vignette: 0.2,
+      grain: 0.0,
+    },
   };
 
-  function setSlider(name, value){
+  function setSlider(name, value) {
     if (ui[name]) {
       ui[name].value = value;
-      uiVals[name+"V"].textContent = (+value).toFixed(2);
+      uiVals[name + "V"].textContent = (+value).toFixed(2);
     }
   }
 
-  function applyPreset(p){
-    for(const k of Object.keys(p)){
-      if(ui[k]) setSlider(k, p[k]);
+  function applyPreset(p) {
+    for (const k of Object.keys(p)) {
+      if (ui[k]) setSlider(k, p[k]);
     }
     requestRender();
   }
 
   // Populate presets
-  for(const name of Object.keys(PRESETS)){
+  for (const name of Object.keys(PRESETS)) {
     const opt = document.createElement("option");
-    opt.value = name; opt.textContent = name;
+    opt.value = name;
+    opt.textContent = name;
     ui.preset.appendChild(opt);
   }
   ui.preset.value = "Normal";
@@ -315,52 +568,53 @@
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   }
 
-  function drawPlaceholder(){
-    const w = 1200, h = 800;
-    const tempCanvas = document.createElement('canvas');
+  function drawPlaceholder() {
+    const w = 1200,
+      h = 800;
+    const tempCanvas = document.createElement("canvas");
     tempCanvas.width = w;
     tempCanvas.height = h;
-    const ctx = tempCanvas.getContext('2d');
-    
-    const g = ctx.createLinearGradient(0,0,w,h);
+    const ctx = tempCanvas.getContext("2d");
+
+    const g = ctx.createLinearGradient(0, 0, w, h);
     g.addColorStop(0, "#2b5876");
     g.addColorStop(0.45, "#4e4376");
     g.addColorStop(1, "#f7971e");
     ctx.fillStyle = g;
-    ctx.fillRect(0,0,w,h);
+    ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "rgba(255,255,255,0.85)";
     ctx.font = "48px system-ui";
     ctx.fillText("Upload an image to test filters", 70, 120);
     ctx.font = "22px system-ui";
     ctx.fillStyle = "rgba(255,255,255,0.65)";
     ctx.fillText("This is a placeholder canvas.", 70, 170);
-    
+
     canvas.width = w;
     canvas.height = h;
     gl.viewport(0, 0, w, h);
-    
+
     loadTexture(tempCanvas);
     imageLoaded = true;
     requestRender();
   }
 
-  function fitToCanvas(image, maxW=2000){
+  function fitToCanvas(image, maxW = 2000) {
     // WebGL can handle larger images easily
     const ratio = image.naturalWidth / image.naturalHeight;
     let w = Math.min(maxW, image.naturalWidth);
     let h = Math.round(w / ratio);
-    
+
     canvas.width = w;
     canvas.height = h;
     gl.viewport(0, 0, w, h);
-    
+
     loadTexture(image);
     imageLoaded = true;
   }
 
   ui.file.addEventListener("change", (e) => {
     const f = e.target.files?.[0];
-    if(!f) return;
+    if (!f) return;
     const url = URL.createObjectURL(f);
     img.onload = () => {
       fitToCanvas(img);
@@ -377,7 +631,7 @@
 
   function render() {
     if (!imageLoaded) return;
-    
+
     const t0 = performance.now();
 
     gl.useProgram(program);
@@ -408,7 +662,7 @@
 
     const dt = Math.round(performance.now() - t0);
     ui.fps.textContent = `Render: ${dt}ms (WebGL)`;
-    
+
     animationFrameId = null;
   }
 
@@ -419,21 +673,33 @@
   }
 
   // Slider updates
-  for(const k of ["strength","exposure","contrast","saturation","temp","tint","fade","vignette","grain"]){
+  for (const k of [
+    "strength",
+    "exposure",
+    "contrast",
+    "saturation",
+    "temp",
+    "tint",
+    "fade",
+    "vignette",
+    "grain",
+  ]) {
     ui[k].addEventListener("input", () => {
-      uiVals[k+"V"].textContent = (+ui[k].value).toFixed(2);
+      uiVals[k + "V"].textContent = (+ui[k].value).toFixed(2);
       requestRender();
     });
   }
 
-  ui.preset.addEventListener("change", () => applyPreset(PRESETS[ui.preset.value]));
+  ui.preset.addEventListener("change", () =>
+    applyPreset(PRESETS[ui.preset.value]),
+  );
   ui.reset.addEventListener("click", () => {
     ui.preset.value = "Normal";
     applyPreset(PRESETS["Normal"]);
   });
 
   ui.save.addEventListener("click", () => {
-    // WebGL canvas needs to be drawn with preserveDrawingBuffer:true to grab dataURL 
+    // WebGL canvas needs to be drawn with preserveDrawingBuffer:true to grab dataURL
     // or just grab it right after render. We set preserveDrawingBuffer:true in init.
     const a = document.createElement("a");
     a.download = "filtered.png";

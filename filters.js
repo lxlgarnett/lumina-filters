@@ -5,16 +5,24 @@ const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const lerp = (a, b, t) => a + (b - a) * t;
 
 function rgbToHsl(r, g, b) {
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
   const l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
@@ -99,7 +107,7 @@ function noise2D(x, y, seed) {
 }
 
 // Export for Node.js (Jest) and Browser (Window/Worker)
-(function(root) {
+(function (root) {
   const ImageFilters = {
     clamp01,
     lerp,
@@ -110,12 +118,18 @@ function noise2D(x, y, seed) {
     applyTemperature,
     applyTint,
     vignetteFactor,
-    noise2D
+    noise2D,
   };
 
-  if (typeof module !== 'undefined' && module.exports) {
+  if (typeof module !== "undefined" && module.exports) {
     module.exports = ImageFilters;
   } else {
     root.ImageFilters = ImageFilters;
   }
-})(typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : this);
+})(
+  typeof self !== "undefined"
+    ? self
+    : typeof window !== "undefined"
+      ? window
+      : this,
+);

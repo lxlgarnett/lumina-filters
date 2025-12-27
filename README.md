@@ -16,11 +16,13 @@ A real-time web application to apply Instagram-style filters to your images usin
 ## Installation & Usage
 
 1.  **Install dependencies:**
+
     ```bash
     npm install
     ```
 
 2.  **Start the server:**
+
     ```bash
     npm start
     ```
