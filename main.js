@@ -51,6 +51,9 @@
     "Reyes-ish":     { strength:0.90, exposure:0.10, contrast:0.90, saturation:0.75, temp:0.10, fade:0.00, vignette:0.00, grain:0.00 },
     "Slumber-ish":   { strength:0.90, exposure:0.05, contrast:0.95, saturation:0.66, temp:0.05, fade:0.15, vignette:0.20, grain:0.00 },
     "Crema-ish":     { strength:0.90, exposure:0.05, contrast:1.00, saturation:0.90, temp:-0.05, fade:0.10, vignette:0.20, grain:0.05 },
+    "Ludwig-ish":    { strength:0.90, exposure:0.05, contrast:1.05, saturation:0.95, temp:0.03, fade:0.05, vignette:0.05, grain:0.00 },
+    "Aden-ish":      { strength:0.90, exposure:0.04, contrast:0.90, saturation:0.85, temp:0.08, fade:0.12, vignette:0.10, grain:0.00 },
+    "Perpetua-ish":  { strength:0.90, exposure:0.00, contrast:1.10, saturation:1.10, temp:-0.05, fade:0.05, vignette:0.15, grain:0.05 },
   };
 
   function setSlider(name, value){
