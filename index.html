@@ -6,15 +6,15 @@
   <title>Real-time Instagram-style Filters (Canvas)</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background:#0b0d10; color:#eaeef3; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
     .top { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .card { background:#12161c; border:1px solid #1f2630; border-radius: 14px; padding: 14px; }
+    .card { background:#12161c; border:1px solid #1f2630; border-radius: 14px; padding: 20px; }
     canvas { width: 100%; height: auto; border-radius: 14px; background:#0d1015; }
     label { display:flex; gap: 10px; align-items:center; justify-content: space-between; margin: 10px 0; }
     input[type="range"] { width: 62%; }
     select, input[type="file"], button { background:#0f141b; color:#eaeef3; border:1px solid #263041; border-radius: 10px; padding: 8px 10px; }
     button { cursor:pointer; }
-    .grid { display:grid; grid-template-columns: 1.3fr 0.7fr; gap: 14px; }
+    .grid { display:grid; grid-template-columns: 1.6fr 0.7fr; gap: 14px; }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } input[type="range"]{ width: 60%; } }
     .hint { color:#a8b3c5; font-size: 13px; line-height: 1.4; margin-top: 8px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
