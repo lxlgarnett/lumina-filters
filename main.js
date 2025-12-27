@@ -40,6 +40,7 @@
   
   // Presets definition
   const PRESETS = {
+    "Normal":        { strength:1.00, exposure:0.00, contrast:1.00, saturation:1.00, temp:0.00, fade:0.00, vignette:0.00, grain:0.00 },
     "Clarendon-ish": { strength:0.85, exposure:0.03, contrast:1.22, saturation:1.18, temp:0.05, fade:0.06, vignette:0.18, grain:0.06 },
     "Gingham-ish":   { strength:0.90, exposure:0.06, contrast:0.98, saturation:0.92, temp:0.02, fade:0.20, vignette:0.15, grain:0.07 },
     "Juno-ish":      { strength:0.85, exposure:0.04, contrast:1.10, saturation:1.28, temp:0.10, fade:0.08, vignette:0.18, grain:0.07 },
@@ -89,7 +90,7 @@
     opt.value = name; opt.textContent = name;
     ui.preset.appendChild(opt);
   }
-  ui.preset.value = "Clarendon-ish";
+  ui.preset.value = "Normal";
 
   // -----------------------------
   // Image loading + scaling
@@ -200,8 +201,8 @@
 
   ui.preset.addEventListener("change", () => applyPreset(PRESETS[ui.preset.value]));
   ui.reset.addEventListener("click", () => {
-    ui.preset.value = "Clarendon-ish";
-    applyPreset(PRESETS["Clarendon-ish"]);
+    ui.preset.value = "Normal";
+    applyPreset(PRESETS["Normal"]);
   });
 
   ui.save.addEventListener("click", () => {
@@ -212,6 +213,6 @@
   });
 
   // Init
-  applyPreset(PRESETS["Clarendon-ish"]);
+  applyPreset(PRESETS["Normal"]);
   drawPlaceholder();
 })();
