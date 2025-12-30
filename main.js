@@ -523,6 +523,7 @@
   };
 
   let activePresetName = "Normal";
+  let activeThumbEl = null;
 
   function setSlider(name, value) {
     if (ui[name]) {
@@ -540,11 +541,10 @@
       if (ui[k]) setSlider(k, p[k]);
     }
 
-    // Update active state in UI
-    document.querySelectorAll(".filter-item").forEach(el => {
-      if(el.dataset.name === name) el.classList.add("active");
-      else el.classList.remove("active");
-    });
+    // Update active state in UI efficiently
+    if (activeThumbEl) activeThumbEl.classList.remove("active");
+    activeThumbEl = ui.scroller.querySelector(`.filter-item[data-name="${name}"]`);
+    if (activeThumbEl) activeThumbEl.classList.add("active");
 
     requestMainRender();
   }
@@ -670,9 +670,11 @@
 
       const div = document.createElement("div");
       div.className = "filter-item";
-      if(name === activePresetName) div.classList.add("active");
+      if(name === activePresetName) {
+        div.classList.add("active");
+        activeThumbEl = div;
+      }
       div.dataset.name = name;
-      div.onclick = () => applyPreset(name);
 
       const img = document.createElement("img");
       img.src = dataURL;
@@ -783,6 +785,13 @@
     a.download = "filtered.png";
     a.href = mainCtx.gl.canvas.toDataURL("image/png");
     a.click();
+  });
+
+  ui.scroller.addEventListener("click", (e) => {
+    const item = e.target.closest(".filter-item");
+    if (item && item.dataset.name) {
+      applyPreset(item.dataset.name);
+    }
   });
 
   // Init
