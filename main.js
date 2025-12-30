@@ -198,6 +198,7 @@
   // -----------------------------
   // Initialization
   // -----------------------------
+  const THUMB_SIZE = 100;
   const mainCtx = initGLContext($("cv"));
   
   // Thumbnails context
@@ -245,8 +246,6 @@
     vignetteV: $("vignetteV"),
     grainV: $("grainV"),
   };
-
-  const THUMB_SIZE = 100;
 
   // Presets definition (Same as before)
   const PRESETS = {
