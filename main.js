@@ -680,7 +680,7 @@
       img.src = dataURL;
       
       const span = document.createElement("span");
-      span.innerText = name.replace("-ish", "").replace("Normal", "Original");
+      span.textContent = name.replace("-ish", "").replace("Normal", "Original");
 
       div.appendChild(img);
       div.appendChild(span);
@@ -729,9 +729,7 @@
     requestMainRender();
 
     // Also generate thumbnails for placeholder
-    const thumbPlaceholder = new Image();
-    thumbPlaceholder.onload = () => generateThumbnails(thumbPlaceholder);
-    thumbPlaceholder.src = tempCanvas.toDataURL();
+    generateThumbnails(tempCanvas);
   }
 
   function fitToCanvas(image, maxW = 1600) {
