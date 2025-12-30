@@ -621,7 +621,12 @@
   // -----------------------------
   // Thumbnails
   // -----------------------------
+  let currentThumbGenId = 0;
+
   function generateThumbnails(sourceImage) {
+    currentThumbGenId++;
+    const myId = currentThumbGenId;
+
     // 1. Create a small version of sourceImage
     const tempCanvas = document.createElement("canvas");
     const thumbW = 100;
@@ -651,8 +656,15 @@
     // 3. Clear container
     ui.scroller.innerHTML = "";
 
-    // 4. Loop presets
-    for (const [name, params] of Object.entries(PRESETS)) {
+    // 4. Async loop presets
+    const entries = Object.entries(PRESETS);
+    let index = 0;
+
+    function processNext() {
+      if (myId !== currentThumbGenId) return; // Cancelled
+      if (index >= entries.length) return;    // Done
+
+      const [name, params] = entries[index];
       render(thumbCtx, params, thumbW, thumbH);
       const dataURL = thumbCtx.gl.canvas.toDataURL("image/jpeg", 0.8);
 
@@ -671,7 +683,12 @@
       div.appendChild(img);
       div.appendChild(span);
       ui.scroller.appendChild(div);
+
+      index++;
+      requestAnimationFrame(processNext);
     }
+
+    processNext();
   }
 
 
