@@ -202,12 +202,15 @@
   
   // Thumbnails context
   const thumbCanvas = document.createElement("canvas");
-  thumbCanvas.width = 100;
-  thumbCanvas.height = 100;
+  thumbCanvas.width = THUMB_SIZE;
+  thumbCanvas.height = THUMB_SIZE;
   const thumbCtx = initGLContext(thumbCanvas);
 
   if (!mainCtx || !thumbCtx) {
-    alert("WebGL not supported");
+    const editorView = $("view-editor");
+    if (editorView) {
+      editorView.innerHTML = `<div class="wrap"><div class="card" style="padding: 20px; text-align: center;">Error: WebGL is not supported by your browser, which is required for this editor.</div></div>`;
+    }
     throw new Error("WebGL not supported");
   }
 
@@ -242,6 +245,8 @@
     vignetteV: $("vignetteV"),
     grainV: $("grainV"),
   };
+
+  const THUMB_SIZE = 100;
 
   // Presets definition (Same as before)
   const PRESETS = {
@@ -524,6 +529,7 @@
 
   let activePresetName = "Normal";
   let activeThumbEl = null;
+  let thumbElementsMap = {};
 
   function setSlider(name, value) {
     if (ui[name]) {
@@ -543,7 +549,7 @@
 
     // Update active state in UI efficiently
     if (activeThumbEl) activeThumbEl.classList.remove("active");
-    activeThumbEl = ui.scroller.querySelector(`.filter-item[data-name="${name}"]`);
+    activeThumbEl = thumbElementsMap[name];
     if (activeThumbEl) activeThumbEl.classList.add("active");
 
     requestMainRender();
@@ -584,7 +590,7 @@
     gl.uniform1f(ctx.locs.u_fade, params.fade);
     gl.uniform1f(ctx.locs.u_vignette, params.vignette);
     gl.uniform1f(ctx.locs.u_grain, params.grain);
-    gl.uniform1f(ctx.locs.u_seed, 0.5); // Fixed seed for stability or random if needed
+    gl.uniform1f(ctx.locs.u_seed, ctx.gl.canvas.id === "cv" ? Math.random() : 0.5);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
@@ -629,10 +635,8 @@
 
     // 1. Create a small version of sourceImage
     const tempCanvas = document.createElement("canvas");
-    const thumbW = 100;
-    const thumbH = 100;
-    tempCanvas.width = thumbW;
-    tempCanvas.height = thumbH;
+    tempCanvas.width = THUMB_SIZE;
+    tempCanvas.height = THUMB_SIZE;
     const ctx = tempCanvas.getContext("2d");
     
     // Draw center crop or fit? Fit is better for preview.
@@ -648,13 +652,14 @@
        sx = 0;
        sy = (sourceImage.height - sSize) / 2;
     }
-    ctx.drawImage(sourceImage, sx, sy, sSize, sSize, 0, 0, thumbW, thumbH);
+    ctx.drawImage(sourceImage, sx, sy, sSize, sSize, 0, 0, THUMB_SIZE, THUMB_SIZE);
 
     // 2. Upload to thumb WebGL
     loadTexture(thumbCtx, tempCanvas);
 
-    // 3. Clear container
-    ui.scroller.innerHTML = "";
+    // 3. Prepare container
+    thumbElementsMap = {}; // Clear cache
+    const fragment = document.createDocumentFragment();
 
     // 4. Async loop presets
     const entries = Object.entries(PRESETS);
@@ -662,10 +667,14 @@
 
     function processNext() {
       if (myId !== currentThumbGenId) return; // Cancelled
-      if (index >= entries.length) return;    // Done
+      if (index >= entries.length) {
+          // Done, update DOM in one go
+          ui.scroller.replaceChildren(fragment);
+          return;
+      }
 
       const [name, params] = entries[index];
-      render(thumbCtx, params, thumbW, thumbH);
+      render(thumbCtx, params, THUMB_SIZE, THUMB_SIZE);
       const dataURL = thumbCtx.gl.canvas.toDataURL("image/jpeg", 0.8);
 
       const div = document.createElement("div");
@@ -675,6 +684,7 @@
         activeThumbEl = div;
       }
       div.dataset.name = name;
+      thumbElementsMap[name] = div;
 
       const img = document.createElement("img");
       img.src = dataURL;
@@ -684,7 +694,7 @@
 
       div.appendChild(img);
       div.appendChild(span);
-      ui.scroller.appendChild(div);
+      fragment.appendChild(div);
 
       index++;
       requestAnimationFrame(processNext);
