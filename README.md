@@ -1,5 +1,7 @@
 # Lumina Filters
 
+![License](https://img.shields.io/github/license/lxlgarnett/lumina-filters) ![Version](https://img.shields.io/github/package-json/v/lxlgarnett/lumina-filters) ![Repo Size](https://img.shields.io/github/repo-size/lxlgarnett/lumina-filters) ![Top Language](https://img.shields.io/github/languages/top/lxlgarnett/lumina-filters) ![Last Commit](https://img.shields.io/github/last-commit/lxlgarnett/lumina-filters) ![Issues](https://img.shields.io/github/issues/lxlgarnett/lumina-filters) ![Pull Requests](https://img.shields.io/github/issues-pr/lxlgarnett/lumina-filters) ![Stars](https://img.shields.io/github/stars/lxlgarnett/lumina-filters?style=social) ![Forks](https://img.shields.io/github/forks/lxlgarnett/lumina-filters?style=social)
+
 Lumina Filters is a high-performance, real-time web application designed to apply Instagram-style filters and image adjustments using WebGL and the HTML5 Canvas API.
 
 ## 🌟 Features
@@ -88,4 +90,4 @@ npm test
 
 ## 📄 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
